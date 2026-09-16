@@ -1,1 +1,105 @@
-# Setup & Running the Spanish Learning Cards App\n\n## Quick Start (Local)\n\n### 1. Clone the Repository\n```bash\ngit clone https://github.com/eloszormatatakakiban-ctrl/spanish-learning-cards.git\ncd spanish-learning-cards\n```\n\n### 2. Start the Backend (Python)\n\n**Requirements:** Python 3.7+\n\n```bash\ncd backend\npip install -r requirements.txt\npython app.py\n```\n\nThe backend will start on: `http://localhost:5000`\n\nYou should see:\n```\n * Running on http://127.0.0.1:5000\n```\n\n### 3. Start the Frontend\n\n**Option A: Simple Python HTTP Server (Recommended for local)**\n```bash\ncd frontend\npython -m http.server 8000\n```\n\nThen open in your browser: `http://localhost:8000`\n\n**Option B: Using Node.js (if installed)**\n```bash\ncd frontend\nnpx http-server -p 8000\n```\n\nThen open in your browser: `http://localhost:8000`\n\n---\n\n## Deploy to the Internet (Share with Everyone)\n\n### Option 1: Free Hosting with Vercel (Recommended)\n\n#### Frontend + Backend on Vercel\n\n1. **Create a Vercel account:** https://vercel.com\n\n2. **Install Vercel CLI:**\n```bash\nnpm install -g vercel\n```\n\n3. **Deploy:**\n```bash\ncd spanish-learning-cards\nvercel\n```\n\nFollow the prompts and Vercel will give you a URL like: `https://spanish-learning-cards-xxx.vercel.app`\n\n---\n\n### Option 2: Using Heroku (Free tier available)\n\n#### Deploy Backend to Heroku\n\n1. **Create Heroku account:** https://www.heroku.com\n\n2. **Install Heroku CLI:** https://devcenter.heroku.com/articles/heroku-cli\n\n3. **Create Heroku app:**\n```bash\nheroku create spanish-cards-yourname\n```\n\n4. **Deploy:**\n```bash\ngit push heroku main\n```\n\n5. **Get your backend URL:**\n```bash\nheroku open\n```\n\nYou'll get: `https://spanish-cards-yourname.herokuapp.com`\n\n#### Deploy Frontend to Vercel/Netlify\n\n1. **Update API URL in frontend:**\n\nEdit `frontend/js/app.js` and change:\n```javascript\nconst API_URL = 'http://localhost:5000/api';\n```\n\nTo:\n```javascript\nconst API_URL = 'https://spanish-cards-yourname.herokuapp.com/api';\n```\n\n2. **Deploy frontend to Netlify:**\n\n- Go to https://netlify.com\n- Connect your GitHub repo\n- Netlify will auto-deploy\n- You get: `https://your-app-name.netlify.app`\n\n---\n\n### Option 3: Using Railway (Easiest)\n\n1. **Go to Railway:** https://railway.app\n2. **Connect your GitHub repo**\n3. **Railway auto-deploys everything**\n4. You get a public URL automatically!\n\n---\n\n### Option 4: Docker (Advanced)\n\n**Create `Dockerfile` in root:**\n```dockerfile\nFROM python:3.9\n\nWORKDIR /app\n\nCOPY backend/requirements.txt .\nRUN pip install -r requirements.txt\n\nCOPY . .\n\nEXPOSE 5000\n\nCMD [\"python\", \"backend/app.py\"]\n```\n\n**Deploy to any container hosting (AWS, DigitalOcean, etc.)**\n\n---\n\n## Quick URLs Summary\n\n**Local Development:**\n- Frontend: `http://localhost:8000`\n- Backend: `http://localhost:5000`\n- API: `http://localhost:5000/api`\n\n**Production (Example):**\n- Website: `https://spanish-learning-cards.vercel.app` ← Share this link\n- API: `https://spanish-api.herokuapp.com/api`\n\n---\n\n## Troubleshooting\n\n### CORS Error?\nAdd the frontend domain to `backend/app.py`:\n```python\nCORS(app, origins=[\"https://your-frontend-url.com\"])\n```\n\n### Port Already in Use?\n```bash\n# Find process on port 5000\nlsof -i :5000\n\n# Kill it\nkill -9 <PID>\n```\n\n### Can't connect to backend?\n1. Make sure backend is running on port 5000\n2. Check `API_URL` in `frontend/js/app.js` is correct\n3. Check CORS is enabled in backend\n\n---\n\n## Share with Friends!\n\nOnce deployed, share the public URL with anyone:\n\n✅ They can learn Spanish immediately\n✅ No installation needed\n✅ Progress is saved\n✅ Works on mobile & desktop\n\n---\n\n**Questions? Need help with deployment?** Let me know which hosting option you prefer! 🚀\n"
+# Spanish Learning Cards - Setup Guide
+
+## 🚀 Deploy for FREE - 3 Easy Options
+
+### **Option 1: Railway.app (RECOMMENDED) ⭐**
+
+**Fastest & Easiest - Takes 2 minutes**
+
+1. Go to: https://railway.app
+2. Click "Start a New Project"
+3. Click "Deploy from GitHub Repo"
+4. Select your `spanish-learning-cards` repo
+5. Railway auto-deploys!
+6. You get a **free public website** like: `https://spanish-learning-cards-xxx.railway.app`
+7. **Share the link with anyone!** ✅
+
+**That's it!** No credit card needed.
+
+---
+
+### **Option 2: Render.com (FREE)**
+
+1. Go to: https://render.com
+2. Click "New +" → "Web Service"
+3. Connect your GitHub repo
+4. Render auto-detects it's Python/Flask
+5. Click "Deploy"
+6. Get your website: `https://spanish-learning-cards-xxx.onrender.com`
+7. **Share it!** ✅
+
+---
+
+### **Option 3: Heroku (Free tier available)**
+
+1. Go to: https://www.heroku.com
+2. Sign up
+3. Click "Create new app"
+4. Connect GitHub repo
+5. Enable auto-deploy
+6. Get your website: `https://spanish-learning-cards-xxx.herokuapp.com`
+7. **Share it!** ✅
+
+---
+
+## 📱 Your Website Will Look Like:
+
+```
+https://spanish-learning-cards-xxx.railway.app
+├─ Home page with Spanish cards
+├─ Swipe to learn
+├─ Track progress
+└─ Share link with friends
+```
+
+**Works on:**
+- 📱 Mobile phones
+- 💻 Computers
+- 📺 Tablets
+- No app installation needed!
+
+---
+
+## 🔍 About Search Engines
+
+✅ Search engines **DO index** free hosting sites like:
+- railway.app
+- onrender.com
+- herokuapp.com
+
+Your site will appear in Google searches for "Spanish learning cards" etc.
+
+---
+
+## 💡 How It Works
+
+1. **Frontend** (website interface) + **Backend** (API) = **Single Website**
+2. Everything runs on **ONE free domain**
+3. No separate frontend/backend needed
+4. Everyone accesses: `https://spanish-learning-cards-xxx.railway.app`
+
+---
+
+## 📝 Local Testing (Before Deploying)
+
+```bash
+# Install dependencies
+cd backend
+pip install -r requirements.txt
+
+# Start server
+python app.py
+```
+
+Open: `http://localhost:5000`
+
+---
+
+## 🎯 Quick Start Summary
+
+1. **Deploy**: Use Railway, Render, or Heroku
+2. **Get URL**: They give you a free public website
+3. **Share**: Send link to friends
+4. **Done!** Everyone can start learning Spanish 🎉
+
+**No .com domain needed. Free hosting works great!**

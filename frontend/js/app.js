@@ -1,5 +1,5 @@
-// Configuration
-const API_URL = 'http://localhost:5000/api';
+// Configuration - Works on any domain
+const API_URL = window.location.origin + '/api';
 let currentWords = [];
 let currentIndex = 0;
 let currentTab = 'learning';
