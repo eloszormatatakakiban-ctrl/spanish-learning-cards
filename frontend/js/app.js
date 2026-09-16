@@ -1,47 +1,69 @@
-// Configuration - Works on any domain
+// Configuration
 const API_URL = window.location.origin + '/api';
 let currentWords = [];
 let currentIndex = 0;
 let currentTab = 'learning';
-let touchStartX = 0;
-let touchEndX = 0;
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
+    setupNavigation();
+    loadStats();
     loadWords();
     setupEventListeners();
-    updateStats();
 });
 
-// Setup Event Listeners
-function setupEventListeners() {
-    // Button clicks
-    document.getElementById('btn-learn').addEventListener('click', markAsLearned);
-    document.getElementById('btn-skip').addEventListener('click', markAsUnlearned);
-
-    // Tab navigation
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            currentTab = e.target.dataset.tab;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
-            loadWords();
+// Navigation
+function setupNavigation() {
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const page = item.dataset.page;
+            goToPage(page);
         });
-    });
-
-    // Card swipe gestures
-    const cardWrapper = document.getElementById('card-wrapper');
-    cardWrapper.addEventListener('touchstart', handleTouchStart, false);
-    cardWrapper.addEventListener('touchend', handleTouchEnd, false);
-
-    // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft') markAsUnlearned();
-        if (e.key === 'ArrowRight') markAsLearned();
     });
 }
 
-// Load words based on current tab
+function goToPage(page) {
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    
+    // Show selected page
+    const pageElement = document.getElementById(`${page}-page`);
+    if (pageElement) {
+        pageElement.classList.add('active');
+    }
+    
+    // Update active nav item
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    document.querySelector(`[data-page="${page}"]`).classList.add('active');
+    
+    // Load page-specific data
+    if (page === 'cards') {
+        loadWords();
+    } else if (page === 'progress') {
+        loadProgressStats();
+    }
+}
+
+// Load statistics for dashboard
+async function loadStats() {
+    try {
+        const response = await fetch(`${API_URL}/stats`);
+        const stats = await response.json();
+        
+        document.getElementById('learned-count-dash').textContent = stats.learned;
+        document.getElementById('remaining-count-dash').textContent = stats.remaining;
+        document.getElementById('progress-dash').textContent = Math.round(stats.progress_percentage) + '%';
+        document.getElementById('total-count-dash').textContent = stats.total_words;
+        document.getElementById('progress-fill-dash').style.width = stats.progress_percentage + '%';
+        document.getElementById('progress-text-dash').textContent = Math.round(stats.progress_percentage);
+    } catch (error) {
+        console.error('Error loading stats:', error);
+    }
+}
+
+// Load words for card learning
 async function loadWords() {
     try {
         const endpoint = currentTab === 'learning' 
@@ -52,111 +74,59 @@ async function loadWords() {
         currentWords = await response.json();
         currentIndex = 0;
         displayCard();
-        displayWordList();
+        displayWordsList();
     } catch (error) {
         console.error('Error loading words:', error);
-        showError('Failed to load words');
     }
 }
 
 // Display current card
 function displayCard() {
-    const card = document.getElementById('current-card');
+    const card = document.getElementById('main-card');
     
     if (currentWords.length === 0) {
         card.innerHTML = `
             <div class="card-content">
-                <div class="card-spanish">🎉</div>
-                <div class="card-english">No more words in this category!</div>
+                <div class="card-word">
+                    <h2 class="spanish-word">🎉</h2>
+                    <p class="english-word">No more words in this category!</p>
+                </div>
             </div>
         `;
+        document.getElementById('current-card-num').textContent = '0';
+        document.getElementById('total-cards-num').textContent = '0';
         return;
     }
 
     const word = currentWords[currentIndex];
-    card.className = 'card ' + (word.learned ? 'learned-card' : 'learning-card');
-    
     card.innerHTML = `
         <div class="card-content">
-            <div class="card-spanish">${word.spanish}</div>
-            <div class="card-english">${word.english}</div>
+            <div class="card-word">
+                <h2 class="spanish-word">${word.spanish}</h2>
+                <p class="english-word">${word.english}</p>
+            </div>
             <div class="card-example">
-                <p class="example-label">Example:</p>
-                <p class="example-sentence">${word.example_sentence}</p>
-                <p class="example-translation">${word.example_translation}</p>
+                <p class="label">Ejemplo:</p>
+                <p class="sentence">${word.example_sentence}</p>
+                <p class="translation">${word.example_translation}</p>
+            </div>
+            <div class="card-progress">
+                <span>Card <span id="current-card-num">${currentIndex + 1}</span> of <span id="total-cards-num">${currentWords.length}</span></span>
             </div>
         </div>
     `;
 }
 
-// Mark as learned
-async function markAsLearned() {
-    if (currentWords.length === 0) return;
-    
-    const word = currentWords[currentIndex];
-    const card = document.getElementById('current-card');
-    card.classList.add('slide-out-right');
-    
-    try {
-        await fetch(`${API_URL}/words/${word.id}/mark-learned`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        
-        setTimeout(() => {
-            currentIndex++;
-            if (currentIndex >= currentWords.length) {
-                currentIndex = 0;
-            }
-            displayCard();
-            updateStats();
-            displayWordList();
-        }, 300);
-    } catch (error) {
-        console.error('Error marking as learned:', error);
-        card.classList.remove('slide-out-right');
-    }
-}
-
-// Mark as unlearned
-async function markAsUnlearned() {
-    if (currentWords.length === 0) return;
-    
-    const word = currentWords[currentIndex];
-    const card = document.getElementById('current-card');
-    card.classList.add('slide-out-left');
-    
-    try {
-        await fetch(`${API_URL}/words/${word.id}/mark-unlearned`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        
-        setTimeout(() => {
-            currentIndex++;
-            if (currentIndex >= currentWords.length) {
-                currentIndex = 0;
-            }
-            displayCard();
-            updateStats();
-            displayWordList();
-        }, 300);
-    } catch (error) {
-        console.error('Error marking as unlearned:', error);
-        card.classList.remove('slide-out-left');
-    }
-}
-
-// Display word list
-function displayWordList() {
-    const wordList = document.getElementById('word-list');
+// Display words list
+function displayWordsList() {
+    const listContainer = document.getElementById('words-list-container');
     
     if (currentWords.length === 0) {
-        wordList.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No words to display</div>';
+        listContainer.innerHTML = '<p style="text-align: center; color: #999;">No words to display</p>';
         return;
     }
     
-    wordList.innerHTML = currentWords.map((word, idx) => `
+    listContainer.innerHTML = currentWords.map((word, idx) => `
         <div class="word-item">
             <span class="word-rank">#${word.rank}</span>
             <div class="word-text">
@@ -168,53 +138,132 @@ function displayWordList() {
     `).join('');
 }
 
-// Update statistics
-async function updateStats() {
+// Setup event listeners
+function setupEventListeners() {
+    document.getElementById('btn-learn').addEventListener('click', markAsLearned);
+    document.getElementById('btn-skip').addEventListener('click', markAsUnlearned);
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            currentTab = e.target.dataset.tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            loadWords();
+        });
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') markAsUnlearned();
+        if (e.key === 'ArrowRight') markAsLearned();
+    });
+}
+
+// Mark as learned
+async function markAsLearned() {
+    if (currentWords.length === 0) return;
+    
+    const word = currentWords[currentIndex];
+    
+    try {
+        await fetch(`${API_URL}/words/${word.id}/mark-learned`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        currentIndex++;
+        if (currentIndex >= currentWords.length) {
+            currentIndex = 0;
+        }
+        displayCard();
+        displayWordsList();
+        loadStats();
+    } catch (error) {
+        console.error('Error marking as learned:', error);
+    }
+}
+
+// Mark as unlearned
+async function markAsUnlearned() {
+    if (currentWords.length === 0) return;
+    
+    const word = currentWords[currentIndex];
+    
+    try {
+        await fetch(`${API_URL}/words/${word.id}/mark-unlearned`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        currentIndex++;
+        if (currentIndex >= currentWords.length) {
+            currentIndex = 0;
+        }
+        displayCard();
+        displayWordsList();
+        loadStats();
+    } catch (error) {
+        console.error('Error marking as unlearned:', error);
+    }
+}
+
+// Load progress statistics
+async function loadProgressStats() {
     try {
         const response = await fetch(`${API_URL}/stats`);
         const stats = await response.json();
         
-        document.getElementById('learned-count').textContent = stats.learned;
-        document.getElementById('remaining-count').textContent = stats.remaining;
-        document.getElementById('progress-percentage').textContent = Math.round(stats.progress_percentage) + '%';
-        document.getElementById('progress-fill').style.width = stats.progress_percentage + '%';
-    } catch (error) {
-        console.error('Error updating stats:', error);
-    }
-}
-
-// Touch swipe handlers
-function handleTouchStart(e) {
-    touchStartX = e.changedTouches[0].screenX;
-}
-
-function handleTouchEnd(e) {
-    touchEndX = e.changedTouches[0].screenX;
-    handleSwipe();
-}
-
-function handleSwipe() {
-    const swipeThreshold = 50;
-    const diff = touchStartX - touchEndX;
-    
-    if (Math.abs(diff) > swipeThreshold) {
-        if (diff > 0) {
-            // Swiped left - mark as not learned
-            markAsUnlearned();
-        } else {
-            // Swiped right - mark as learned
-            markAsLearned();
+        document.getElementById('total-learned-stat').textContent = stats.learned;
+        document.getElementById('total-remaining-stat').textContent = stats.remaining;
+        document.getElementById('overall-progress').textContent = Math.round(stats.progress_percentage) + '%';
+        
+        // Update progress ring
+        const circumference = 2 * Math.PI * 90;
+        const offset = circumference - (stats.progress_percentage / 100) * circumference;
+        const ringProgress = document.getElementById('progress-ring');
+        if (ringProgress) {
+            ringProgress.style.strokeDashoffset = offset;
         }
+        
+        loadLearnedWords();
+    } catch (error) {
+        console.error('Error loading progress stats:', error);
     }
 }
 
-// Error handling
-function showError(message) {
-    const card = document.getElementById('current-card');
-    card.innerHTML = `
-        <div class="card-content">
-            <div class="card-spanish">❌</div>
-            <div class="card-english">${message}</div>
-        </div>
-    `;
+// Load learned words
+async function loadLearnedWords() {
+    try {
+        const response = await fetch(`${API_URL}/words/learned`);
+        const words = await response.json();
+        
+        const container = document.getElementById('learned-words-list');
+        if (words.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: #999;">No learned words yet. Start learning!</p>';
+            return;
+        }
+        
+        container.innerHTML = words.map(word => `
+            <div class="learned-word-tag">
+                <strong>${word.spanish}</strong>
+                <br>
+                <small>${word.english}</small>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading learned words:', error);
+    }
+}
+
+// Reset progress
+function resetProgress() {
+    if (confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
+        localStorage.clear();
+        location.reload();
+    }
+}
+
+// Export progress
+function exportProgress() {
+    alert('Export feature coming soon!');
 }
