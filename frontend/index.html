@@ -3,72 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spanish Learning Cards</title>
+    <title>Spanish Learning Dashboard</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <h1>🇪🇸 Spanish Learning Cards</h1>
-            <div class="stats">
-                <div class="stat-item">
-                    <span class="stat-label">Learned</span>
-                    <span class="stat-value" id="learned-count">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Remaining</span>
-                    <span class="stat-value" id="remaining-count">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Progress</span>
-                    <span class="stat-value" id="progress-percentage">0%</span>
-                </div>
+    <div class="dashboard">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>🇪🇸 SpanishLearn</h2>
             </div>
-        </header>
-
-        <!-- Progress Bar -->
-        <div class="progress-bar">
-            <div class="progress-fill" id="progress-fill"></div>
-        </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="cards">
+                    <span class="icon">🎴</span>
+                    <span>Learn Cards</span>
+                </a>
+                <a href="#" class="nav-item" data-page="progress">
+                    <span class="icon">📈</span>
+                    <span>My Progress</span>
+                </a>
+                <a href="#" class="nav-item" data-page="settings">
+                    <span class="icon">⚙️</span>
+                    <span>Settings</span>
+                </a>
+            </nav>
+        </aside>
 
         <!-- Main Content -->
-        <main class="main-content">
-            <!-- Card Container -->
-            <div class="card-wrapper" id="card-wrapper">
-                <div class="card learning-card" id="current-card">
-                    <div class="card-content">
-                        <div class="card-spanish">Cargando...</div>
-                        <div class="card-english">Loading...</div>
-                        <div class="card-example">
-                            <p class="example-label">Example:</p>
-                            <p class="example-sentence" id="example-sentence"></p>
-                            <p class="example-translation" id="example-translation"></p>
+        <main class="content">
+            <!-- Header -->
+            <header class="top-bar">
+                <h1>Spanish Learning Dashboard</h1>
+                <div class="header-right">
+                    <span class="user-info">Welcome Back! 👋</span>
+                </div>
+            </header>
+
+            <!-- Dashboard Page -->
+            <section id="dashboard-page" class="page active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📚</div>
+                        <div class="stat-content">
+                            <p class="stat-label">Words to Learn</p>
+                            <h3 class="stat-value" id="remaining-count-dash">0</h3>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-content">
+                            <p class="stat-label">Words Learned</p>
+                            <h3 class="stat-value" id="learned-count-dash">0</h3>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-content">
+                            <p class="stat-label">Progress</p>
+                            <h3 class="stat-value" id="progress-dash">0%</h3>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔥</div>
+                        <div class="stat-content">
+                            <p class="stat-label">Total Words</p>
+                            <h3 class="stat-value" id="total-count-dash">0</h3>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Controls -->
-            <div class="controls">
-                <button class="btn btn-skip" id="btn-skip" title="Swipe left or click to mark as 'Not Learned'">← Not Learned</button>
-                <button class="btn btn-learn" id="btn-learn" title="Swipe right or click to mark as 'Learned'">Learned →</button>
-            </div>
+                <div class="progress-section">
+                    <h2>Learning Progress</h2>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill-dash"></div>
+                    </div>
+                    <p class="progress-text"><span id="progress-text-dash">0</span>% Complete</p>
+                </div>
 
-            <!-- Tabs for Categories -->
-            <div class="tabs">
-                <button class="tab-btn active" data-tab="learning">📚 To Learn</button>
-                <button class="tab-btn" data-tab="learned">✅ Learned</button>
-            </div>
+                <button class="cta-button" onclick="goToPage('cards')">
+                    Start Learning Now →
+                </button>
+            </section>
 
-            <!-- Word List -->
-            <div class="word-list" id="word-list"></div>
+            <!-- Cards Page -->
+            <section id="cards-page" class="page">
+                <div class="cards-container">
+                    <div class="card-tabs">
+                        <button class="tab-btn active" data-tab="learning">
+                            📚 To Learn
+                        </button>
+                        <button class="tab-btn" data-tab="learned">
+                            ✅ Learned
+                        </button>
+                    </div>
+
+                    <div class="card-display">
+                        <div class="card" id="main-card">
+                            <div class="card-content">
+                                <div class="card-word">
+                                    <h2 class="spanish-word">Cargando...</h2>
+                                    <p class="english-word">Loading...</p>
+                                </div>
+                                <div class="card-example">
+                                    <p class="label">Ejemplo:</p>
+                                    <p class="sentence" id="example-sentence"></p>
+                                    <p class="translation" id="example-translation"></p>
+                                </div>
+                                <div class="card-progress" id="card-progress">
+                                    <span>Card <span id="current-card-num">1</span> of <span id="total-cards-num">0</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-actions">
+                        <button class="btn btn-skip" id="btn-skip">
+                            ← Not Yet
+                        </button>
+                        <button class="btn btn-learn" id="btn-learn">
+                            Learned ✓
+                        </button>
+                    </div>
+
+                    <div class="words-list">
+                        <h3>Words in This Category</h3>
+                        <div class="list-container" id="words-list-container"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Progress Page -->
+            <section id="progress-page" class="page">
+                <div class="progress-container">
+                    <h2>Learning Statistics</h2>
+                    
+                    <div class="stats-columns">
+                        <div class="stats-left">
+                            <div class="big-stat">
+                                <div class="big-number" id="total-learned-stat">0</div>
+                                <p>Words Mastered</p>
+                            </div>
+                            <div class="big-stat">
+                                <div class="big-number" id="total-remaining-stat">0</div>
+                                <p>Words to Learn</p>
+                            </div>
+                        </div>
+                        <div class="progress-ring">
+                            <svg width="200" height="200">
+                                <circle cx="100" cy="100" r="90" class="ring-bg"></circle>
+                                <circle cx="100" cy="100" r="90" class="ring-progress" id="progress-ring"></circle>
+                            </svg>
+                            <div class="ring-text">
+                                <p class="ring-label">Overall Progress</p>
+                                <p class="ring-value" id="overall-progress">0%</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="learned-words-section">
+                        <h3>🏆 Learned Words</h3>
+                        <div class="learned-words-list" id="learned-words-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Page -->
+            <section id="settings-page" class="page">
+                <div class="settings-container">
+                    <h2>Settings</h2>
+                    
+                    <div class="setting-group">
+                        <h3>Theme</h3>
+                        <div class="theme-options">
+                            <label>
+                                <input type="radio" name="theme" value="light" checked>
+                                <span>Light Mode</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="theme" value="dark">
+                                <span>Dark Mode</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <h3>Language</h3>
+                        <select>
+                            <option>Spanish (Español)</option>
+                            <option>French (Français)</option>
+                            <option>German (Deutsch)</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-group">
+                        <h3>Difficulty</h3>
+                        <select>
+                            <option>Beginner (0-500 words)</option>
+                            <option>Intermediate (501-1500 words)</option>
+                            <option>Advanced (All 2000+ words)</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-group">
+                        <h3>Actions</h3>
+                        <button class="btn btn-danger" onclick="resetProgress()">Reset All Progress</button>
+                        <button class="btn btn-primary" onclick="exportProgress()">Export Progress</button>
+                    </div>
+                </div>
+            </section>
         </main>
-
-        <!-- Footer -->
-        <footer class="footer">
-            <p>💡 Tip: Swipe cards left to skip, right to mark as learned. Share your progress with friends!</p>
-        </footer>
     </div>
 
     <script src="js/app.js"></script>
