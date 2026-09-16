@@ -1,0 +1,122 @@
+[
+  {
+    "spanish": "el",
+    "english": "the (m.)",
+    "example_sentence": "El gato es grande.",
+    "example_translation": "The cat is big."
+  },
+  {
+    "spanish": "de",
+    "english": "of, from",
+    "example_sentence": "La casa de María es bonita.",
+    "example_translation": "Maria's house is beautiful."
+  },
+  {
+    "spanish": "que",
+    "english": "that, which",
+    "example_sentence": "El libro que leí es interesante.",
+    "example_translation": "The book that I read is interesting."
+  },
+  {
+    "spanish": "y",
+    "english": "and",
+    "example_sentence": "Juan y María van al cine.",
+    "example_translation": "John and Mary go to the cinema."
+  },
+  {
+    "spanish": "a",
+    "english": "to, at",
+    "example_sentence": "Voy a la escuela a las ocho.",
+    "example_translation": "I go to school at eight."
+  },
+  {
+    "spanish": "en",
+    "english": "in, on",
+    "example_sentence": "El libro está en la mesa.",
+    "example_translation": "The book is on the table."
+  },
+  {
+    "spanish": "un",
+    "english": "a, an (m.)",
+    "example_sentence": "Tengo un gato.",
+    "example_translation": "I have a cat."
+  },
+  {
+    "spanish": "ser",
+    "english": "to be",
+    "example_sentence": "Yo soy ingeniero.",
+    "example_translation": "I am an engineer."
+  },
+  {
+    "spanish": "se",
+    "english": "oneself, himself, herself",
+    "example_sentence": "Se llama Carlos.",
+    "example_translation": "His name is Carlos."
+  },
+  {
+    "spanish": "no",
+    "english": "no, not",
+    "example_sentence": "No me gusta el café.",
+    "example_translation": "I don't like coffee."
+  },
+  {
+    "spanish": "haber",
+    "english": "to have (aux.)",
+    "example_sentence": "He comido una manzana.",
+    "example_translation": "I have eaten an apple."
+  },
+  {
+    "spanish": "por",
+    "english": "for, by",
+    "example_sentence": "Viajo por España.",
+    "example_translation": "I travel through Spain."
+  },
+  {
+    "spanish": "con",
+    "english": "with",
+    "example_sentence": "Voy al parque con mis amigos.",
+    "example_translation": "I go to the park with my friends."
+  },
+  {
+    "spanish": "su",
+    "english": "his, her, your, their",
+    "example_sentence": "Su casa es grande.",
+    "example_translation": "Their house is big."
+  },
+  {
+    "spanish": "para",
+    "english": "for, to, in order to",
+    "example_sentence": "Estudio para ser médico.",
+    "example_translation": "I study to be a doctor."
+  },
+  {
+    "spanish": "es",
+    "english": "is",
+    "example_sentence": "Es un día bonito.",
+    "example_translation": "It is a beautiful day."
+  },
+  {
+    "spanish": "lo",
+    "english": "it, him (m.)",
+    "example_sentence": "Lo veo todos los días.",
+    "example_translation": "I see him every day."
+  },
+  {
+    "spanish": "como",
+    "english": "like, as",
+    "example_sentence": "Es tan alto como su hermano.",
+    "example_translation": "He is as tall as his brother."
+  },
+  {
+    "spanish": "más",
+    "english": "more",
+    "example_sentence": "Necesito más tiempo.",
+    "example_translation": "I need more time."
+  },
+  {
+    "spanish": "o",
+    "english": "or",
+    "example_sentence": "¿Prefieres té o café?",
+    "example_translation": "Do you prefer tea or coffee?"
+  }
+]

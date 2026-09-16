@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spanish Learning Cards</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🇪🇸 Spanish Learning Cards</h1>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Learned</span>
+                    <span class="stat-value" id="learned-count">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Remaining</span>
+                    <span class="stat-value" id="remaining-count">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Progress</span>
+                    <span class="stat-value" id="progress-percentage">0%</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Card Container -->
+            <div class="card-wrapper" id="card-wrapper">
+                <div class="card learning-card" id="current-card">
+                    <div class="card-content">
+                        <div class="card-spanish">Cargando...</div>
+                        <div class="card-english">Loading...</div>
+                        <div class="card-example">
+                            <p class="example-label">Example:</p>
+                            <p class="example-sentence" id="example-sentence"></p>
+                            <p class="example-translation" id="example-translation"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button class="btn btn-skip" id="btn-skip" title="Swipe left or click to mark as 'Not Learned'">← Not Learned</button>
+                <button class="btn btn-learn" id="btn-learn" title="Swipe right or click to mark as 'Learned'">Learned →</button>
+            </div>
+
+            <!-- Tabs for Categories -->
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="learning">📚 To Learn</button>
+                <button class="tab-btn" data-tab="learned">✅ Learned</button>
+            </div>
+
+            <!-- Word List -->
+            <div class="word-list" id="word-list"></div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>💡 Tip: Swipe cards left to skip, right to mark as learned. Share your progress with friends!</p>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
