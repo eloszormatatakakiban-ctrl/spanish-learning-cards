@@ -19,6 +19,15 @@ db.init_app(app)
 CORS(app)
 
 
+def ensure_word_table_has_difficulty():
+    engine = db.engine
+    with engine.begin() as conn:
+        result = conn.exec_driver_sql("PRAGMA table_info(words)")
+        columns = [row[1] for row in result]
+        if 'difficulty' not in columns:
+            conn.exec_driver_sql('ALTER TABLE words ADD COLUMN difficulty VARCHAR(20) DEFAULT "easy" NOT NULL')
+
+
 def load_spanish_words():
     """Load Spanish words from JSON on first startup."""
     data_path = os.path.join(BASE_DIR, 'data', 'spanish_words.json')
@@ -29,19 +38,24 @@ def load_spanish_words():
         words_data = json.load(file)
 
     for rank, word_data in enumerate(words_data, 1):
+        existing = Word.query.filter_by(spanish=word_data['spanish']).first()
+        if existing:
+            continue
+
         db.session.add(Word(
             rank=rank,
             spanish=word_data['spanish'],
             english=word_data['english'],
+            difficulty=word_data.get('difficulty', 'easy'),
             example_sentence=word_data.get('example_sentence', ''),
             example_translation=word_data.get('example_translation', '')
         ))
     db.session.commit()
 
 
-# This must come after the function definition above.
 with app.app_context():
     db.create_all()
+    ensure_word_table_has_difficulty()
     if Word.query.count() == 0:
         load_spanish_words()
 

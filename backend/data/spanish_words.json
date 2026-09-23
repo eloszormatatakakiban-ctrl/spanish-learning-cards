@@ -1,122 +1,142 @@
 [
   {
-    "spanish": "el",
-    "english": "the (m.)",
-    "example_sentence": "El gato es grande.",
-    "example_translation": "The cat is big."
+    "spanish": "hola",
+    "english": "szia",
+    "example_sentence": "¡Hola! ¿Cómo estás?",
+    "example_translation": "Szia! Hogy vagy?",
+    "difficulty": "easy"
   },
   {
-    "spanish": "de",
-    "english": "of, from",
-    "example_sentence": "La casa de María es bonita.",
-    "example_translation": "Maria's house is beautiful."
+    "spanish": "gracias",
+    "english": "köszönöm",
+    "example_sentence": "Gracias por tu ayuda.",
+    "example_translation": "Köszönöm a segítségedet.",
+    "difficulty": "easy"
   },
   {
-    "spanish": "que",
-    "english": "that, which",
-    "example_sentence": "El libro que leí es interesante.",
-    "example_translation": "The book that I read is interesting."
+    "spanish": "por favor",
+    "english": "kérem",
+    "example_sentence": "¿Puedes hablar más despacio, por favor?",
+    "example_translation": "Beszélhetsz lassabban, kérem?",
+    "difficulty": "easy"
   },
   {
-    "spanish": "y",
-    "english": "and",
-    "example_sentence": "Juan y María van al cine.",
-    "example_translation": "John and Mary go to the cinema."
+    "spanish": "agua",
+    "english": "víz",
+    "example_sentence": "Necesito agua.",
+    "example_translation": "Vízre van szükségem.",
+    "difficulty": "easy"
   },
   {
-    "spanish": "a",
-    "english": "to, at",
-    "example_sentence": "Voy a la escuela a las ocho.",
-    "example_translation": "I go to school at eight."
+    "spanish": "casa",
+    "english": "ház",
+    "example_sentence": "La casa es grande.",
+    "example_translation": "A ház nagy.",
+    "difficulty": "easy"
   },
   {
-    "spanish": "en",
-    "english": "in, on",
-    "example_sentence": "El libro está en la mesa.",
-    "example_translation": "The book is on the table."
+    "spanish": "comida",
+    "english": "étel",
+    "example_sentence": "La comida está lista.",
+    "example_translation": "Az étel kész.",
+    "difficulty": "easy"
   },
   {
-    "spanish": "un",
-    "english": "a, an (m.)",
-    "example_sentence": "Tengo un gato.",
-    "example_translation": "I have a cat."
+    "spanish": "amigo",
+    "english": "barát",
+    "example_sentence": "Mi amigo vive aquí.",
+    "example_translation": "A barátom itt él.",
+    "difficulty": "easy"
   },
   {
-    "spanish": "ser",
-    "english": "to be",
-    "example_sentence": "Yo soy ingeniero.",
-    "example_translation": "I am an engineer."
+    "spanish": "trabajo",
+    "english": "munka",
+    "example_sentence": "Trabajo todos los días.",
+    "example_translation": "Minden nap dolgozom.",
+    "difficulty": "easy"
   },
   {
-    "spanish": "se",
-    "english": "oneself, himself, herself",
-    "example_sentence": "Se llama Carlos.",
-    "example_translation": "His name is Carlos."
+    "spanish": "mañana",
+    "english": "reggel",
+    "example_sentence": "Mañana voy al mercado.",
+    "example_translation": "Holnap a piacra megyek.",
+    "difficulty": "intermediate"
   },
   {
-    "spanish": "no",
-    "english": "no, not",
-    "example_sentence": "No me gusta el café.",
-    "example_translation": "I don't like coffee."
+    "spanish": "libro",
+    "english": "könyv",
+    "example_sentence": "Estoy leyendo un libro.",
+    "example_translation": "Egy könyvet olvasok.",
+    "difficulty": "intermediate"
   },
   {
-    "spanish": "haber",
-    "english": "to have (aux.)",
-    "example_sentence": "He comido una manzana.",
-    "example_translation": "I have eaten an apple."
+    "spanish": "escuela",
+    "english": "iskola",
+    "example_sentence": "La escuela está cerca.",
+    "example_translation": "Az iskola közel van.",
+    "difficulty": "intermediate"
   },
   {
-    "spanish": "por",
-    "english": "for, by",
-    "example_sentence": "Viajo por España.",
-    "example_translation": "I travel through Spain."
+    "spanish": "tiempo",
+    "english": "idő",
+    "example_sentence": "Hace buen tiempo hoy.",
+    "example_translation": "Szép idő van ma.",
+    "difficulty": "intermediate"
   },
   {
-    "spanish": "con",
-    "english": "with",
-    "example_sentence": "Voy al parque con mis amigos.",
-    "example_translation": "I go to the park with my friends."
+    "spanish": "caminar",
+    "english": "sétálni",
+    "example_sentence": "Me gusta caminar por el parque.",
+    "example_translation": "Szeretek a parkban sétálni.",
+    "difficulty": "intermediate"
   },
   {
-    "spanish": "su",
-    "english": "his, her, your, their",
-    "example_sentence": "Su casa es grande.",
-    "example_translation": "Their house is big."
+    "spanish": "aprender",
+    "english": "tanulni",
+    "example_sentence": "Quiero aprender español.",
+    "example_translation": "Szeretnék spanyolul tanulni.",
+    "difficulty": "intermediate"
   },
   {
-    "spanish": "para",
-    "english": "for, to, in order to",
-    "example_sentence": "Estudio para ser médico.",
-    "example_translation": "I study to be a doctor."
+    "spanish": "familia",
+    "english": "család",
+    "example_sentence": "Mi familia es muy grande.",
+    "example_translation": "A családom nagyon nagy.",
+    "difficulty": "intermediate"
   },
   {
-    "spanish": "es",
-    "english": "is",
-    "example_sentence": "Es un día bonito.",
-    "example_translation": "It is a beautiful day."
+    "spanish": "ciudad",
+    "english": "város",
+    "example_sentence": "La ciudad es hermosa por la noche.",
+    "example_translation": "A város szép éjszaka.",
+    "difficulty": "intermediate"
   },
   {
-    "spanish": "lo",
-    "english": "it, him (m.)",
-    "example_sentence": "Lo veo todos los días.",
-    "example_translation": "I see him every day."
+    "spanish": "desafío",
+    "english": "kihívás",
+    "example_sentence": "Este desafío es complicado.",
+    "example_translation": "Ez a kihívás nehéz.",
+    "difficulty": "hard"
   },
   {
-    "spanish": "como",
-    "english": "like, as",
-    "example_sentence": "Es tan alto como su hermano.",
-    "example_translation": "He is as tall as his brother."
+    "spanish": "responsabilidad",
+    "english": "felelősség",
+    "example_sentence": "La responsabilidad requiere paciencia.",
+    "example_translation": "A felelősség türelmet igényel.",
+    "difficulty": "hard"
   },
   {
-    "spanish": "más",
-    "english": "more",
-    "example_sentence": "Necesito más tiempo.",
-    "example_translation": "I need more time."
+    "spanish": "estrategia",
+    "english": "stratégia",
+    "example_sentence": "Necesitamos una estrategia clara.",
+    "example_translation": "Szükségünk van egy tisztán megfogalmazott stratégiára.",
+    "difficulty": "hard"
   },
   {
-    "spanish": "o",
-    "english": "or",
-    "example_sentence": "¿Prefieres té o café?",
-    "example_translation": "Do you prefer tea or coffee?"
+    "spanish": "persistencia",
+    "english": "kitartás",
+    "example_sentence": "La persistencia lleva al éxito.",
+    "example_translation": "A kitartás vezet a sikerhez.",
+    "difficulty": "hard"
   }
 ]
