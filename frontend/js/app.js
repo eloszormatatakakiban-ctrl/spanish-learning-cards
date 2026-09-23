@@ -1,8 +1,12 @@
 const API_URL = window.location.origin + '/api';
+const BLOCK_SIZE = 20;
 let currentWords = [];
+let allWords = [];
 let currentIndex = 0;
 let currentTab = 'learning';
 let currentDifficulty = 'easy';
+let currentBlock = 0;
+let totalBlocks = 1;
 
 document.addEventListener('DOMContentLoaded', () => {
     setupNavigation();
@@ -16,8 +20,7 @@ function setupNavigation() {
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
-            const page = item.dataset.page;
-            goToPage(page);
+            goToPage(item.dataset.page);
         });
     });
 }
@@ -26,6 +29,7 @@ function setupDifficultyButtons() {
     document.querySelectorAll('.difficulty-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             currentDifficulty = btn.dataset.difficulty;
+            currentBlock = 0;
             document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             loadWords();
@@ -65,21 +69,60 @@ async function loadStats() {
 async function loadWords() {
     try {
         const response = await fetch(`${API_URL}/words`);
-        const allWords = await response.json();
+        const words = await response.json();
 
-        const filtered = allWords.filter(word => {
-            const matchesDifficulty = word.difficulty === currentDifficulty;
-            const matchesTab = currentTab === 'learning' ? !word.learned : word.learned;
-            return matchesDifficulty && matchesTab;
-        });
+        allWords = words.filter(word => word.difficulty === currentDifficulty);
+        const filtered = allWords.filter(word => currentTab === 'learning' ? !word.learned : word.learned);
 
-        currentWords = filtered;
-        currentIndex = 0;
+        if (filtered.length === 0) {
+            currentWords = [];
+            totalBlocks = 1;
+            currentBlock = 0;
+            displayCard();
+            displayWordsList();
+            renderBlockControls();
+            return;
+        }
+
+        totalBlocks = Math.max(1, Math.ceil(filtered.length / BLOCK_SIZE));
+        if (currentBlock >= totalBlocks) currentBlock = 0;
+
+        const start = currentBlock * BLOCK_SIZE;
+        const end = start + BLOCK_SIZE;
+        currentWords = filtered.slice(start, end);
+
         displayCard();
         displayWordsList();
+        renderBlockControls();
     } catch (error) {
         console.error('Error loading words:', error);
     }
+}
+
+function renderBlockControls() {
+    const controls = document.getElementById('block-controls');
+    if (!controls) return;
+
+    const visibleTotal = Math.max(1, totalBlocks);
+    controls.innerHTML = `
+        <button id="prev-block" class="block-btn">← Előző</button>
+        <span>Blokk ${currentBlock + 1} / ${visibleTotal}</span>
+        <button id="next-block" class="block-btn">Következő →</button>
+    `;
+
+    document.getElementById('prev-block').addEventListener('click', () => {
+        if (currentBlock > 0) {
+            currentBlock--;
+            loadWords();
+        }
+    });
+
+    document.getElementById('next-block').addEventListener('click', () => {
+        if (currentBlock < totalBlocks - 1) {
+            currentBlock++;
+            loadWords();
+        }
+    });
 }
 
 function displayCard() {
@@ -99,7 +142,7 @@ function displayCard() {
         return;
     }
 
-    const word = currentWords[currentIndex];
+    const word = currentWords[currentIndex % currentWords.length];
     card.innerHTML = `
         <div class="card-content">
             <div class="card-word">
@@ -112,7 +155,7 @@ function displayCard() {
                 <p class="translation">${word.example_translation}</p>
             </div>
             <div class="card-progress">
-                <span>Kártya <span id="current-card-num">${currentIndex + 1}</span> / <span id="total-cards-num">${currentWords.length}</span></span>
+                <span>Szó <span id="current-card-num">${currentIndex + 1}</span> / <span id="total-cards-num">${currentWords.length}</span></span>
             </div>
         </div>
     `;
@@ -120,13 +163,12 @@ function displayCard() {
 
 function displayWordsList() {
     const listContainer = document.getElementById('words-list-container');
-
     if (currentWords.length === 0) {
         listContainer.innerHTML = '<p style="text-align: center; color: #999;">Nincs megjeleníthető szó.</p>';
         return;
     }
 
-    listContainer.innerHTML = currentWords.map((word) => `
+    listContainer.innerHTML = currentWords.map(word => `
         <div class="word-item">
             <span class="word-rank">#${word.rank}</span>
             <div class="word-text">
@@ -145,6 +187,7 @@ function setupEventListeners() {
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             currentTab = e.target.dataset.tab;
+            currentBlock = 0;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
             loadWords();
@@ -159,17 +202,13 @@ function setupEventListeners() {
 
 async function markAsLearned() {
     if (currentWords.length === 0) return;
-
-    const word = currentWords[currentIndex];
-
+    const word = currentWords[currentIndex % currentWords.length];
     try {
         await fetch(`${API_URL}/words/${word.id}/mark-learned`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
-
         currentIndex++;
-        if (currentIndex >= currentWords.length) currentIndex = 0;
         loadWords();
         loadStats();
     } catch (error) {
@@ -179,17 +218,13 @@ async function markAsLearned() {
 
 async function markAsUnlearned() {
     if (currentWords.length === 0) return;
-
-    const word = currentWords[currentIndex];
-
+    const word = currentWords[currentIndex % currentWords.length];
     try {
         await fetch(`${API_URL}/words/${word.id}/mark-unlearned`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
-
         currentIndex++;
-        if (currentIndex >= currentWords.length) currentIndex = 0;
         loadWords();
         loadStats();
     } catch (error) {
@@ -201,7 +236,6 @@ async function loadProgressStats() {
     try {
         const response = await fetch(`${API_URL}/stats`);
         const stats = await response.json();
-
         document.getElementById('total-learned-stat').textContent = stats.learned;
         document.getElementById('total-remaining-stat').textContent = stats.remaining;
         document.getElementById('overall-progress').textContent = Math.round(stats.progress_percentage) + '%';
@@ -222,7 +256,6 @@ async function loadLearnedWords() {
         const response = await fetch(`${API_URL}/words`);
         const words = await response.json();
         const learned = words.filter(word => word.learned);
-
         const container = document.getElementById('learned-words-list');
         if (learned.length === 0) {
             container.innerHTML = '<p style="text-align: center; color: #999;">Még nincs megtanult szó.</p>';
