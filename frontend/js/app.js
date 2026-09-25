@@ -7,6 +7,7 @@ let currentTab = 'learning';
 let currentDifficulty = 'easy';
 let currentBlock = 0;
 let totalBlocks = 1;
+let isCardFlipped = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     setupNavigation();
@@ -30,6 +31,7 @@ function setupDifficultyButtons() {
         btn.addEventListener('click', () => {
             currentDifficulty = btn.dataset.difficulty;
             currentBlock = 0;
+            isCardFlipped = false;
             document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             loadWords();
@@ -78,6 +80,7 @@ async function loadWords() {
             currentWords = [];
             totalBlocks = 1;
             currentBlock = 0;
+            isCardFlipped = false;
             displayCard();
             displayWordsList();
             renderBlockControls();
@@ -113,6 +116,7 @@ function renderBlockControls() {
     document.getElementById('prev-block').addEventListener('click', () => {
         if (currentBlock > 0) {
             currentBlock--;
+            isCardFlipped = false;
             loadWords();
         }
     });
@@ -120,6 +124,7 @@ function renderBlockControls() {
     document.getElementById('next-block').addEventListener('click', () => {
         if (currentBlock < totalBlocks - 1) {
             currentBlock++;
+            isCardFlipped = false;
             loadWords();
         }
     });
@@ -143,22 +148,54 @@ function displayCard() {
     }
 
     const word = currentWords[currentIndex % currentWords.length];
-    card.innerHTML = `
+    const cardFront = `
         <div class="card-content">
             <div class="card-word">
+                <p class="card-side-label">SPANYOL</p>
                 <h2 class="spanish-word">${word.spanish}</h2>
-                <p class="english-word">${word.english}</p>
             </div>
             <div class="card-example">
                 <p class="label">Példa:</p>
                 <p class="sentence">${word.example_sentence}</p>
-                <p class="translation">${word.example_translation}</p>
             </div>
             <div class="card-progress">
                 <span>Szó <span id="current-card-num">${currentIndex + 1}</span> / <span id="total-cards-num">${currentWords.length}</span></span>
             </div>
         </div>
     `;
+
+    const cardBack = `
+        <div class="card-content">
+            <div class="card-word">
+                <p class="card-side-label">MAGYAR</p>
+                <h2 class="spanish-word">${word.english}</h2>
+            </div>
+            <div class="card-example">
+                <p class="label">Jelentés:</p>
+                <p class="translation">${word.example_translation}</p>
+            </div>
+            <div class="card-progress">
+                <span>Fordítsd meg a kártyát</span>
+            </div>
+        </div>
+    `;
+
+    card.innerHTML = `
+        <div class="flip-card ${isCardFlipped ? 'is-flipped' : ''}" aria-label="Tap to flip card">
+            <div class="flip-card-inner">
+                <div class="flip-card-front">${cardFront}</div>
+                <div class="flip-card-back">${cardBack}</div>
+            </div>
+        </div>
+    `;
+
+    const flipCard = card.querySelector('.flip-card');
+    if (flipCard) {
+        flipCard.addEventListener('click', () => {
+            isCardFlipped = !isCardFlipped;
+            displayCard();
+        });
+    }
 }
 
 function displayWordsList() {
@@ -188,6 +225,7 @@ function setupEventListeners() {
         btn.addEventListener('click', (e) => {
             currentTab = e.target.dataset.tab;
             currentBlock = 0;
+            isCardFlipped = false;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
             loadWords();
@@ -197,6 +235,11 @@ function setupEventListeners() {
     document.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowLeft') markAsUnlearned();
         if (e.key === 'ArrowRight') markAsLearned();
+        if (e.key === ' ') {
+            e.preventDefault();
+            isCardFlipped = !isCardFlipped;
+            displayCard();
+        }
     });
 }
 
@@ -209,6 +252,7 @@ async function markAsLearned() {
             headers: { 'Content-Type': 'application/json' }
         });
         currentIndex++;
+        isCardFlipped = false;
         loadWords();
         loadStats();
     } catch (error) {
@@ -225,6 +269,7 @@ async function markAsUnlearned() {
             headers: { 'Content-Type': 'application/json' }
         });
         currentIndex++;
+        isCardFlipped = false;
         loadWords();
         loadStats();
     } catch (error) {
