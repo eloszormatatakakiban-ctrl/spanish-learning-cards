@@ -1,7 +1,9 @@
 const API_URL = window.location.origin + '/api';
 const BLOCK_SIZE = 20;
+const USERS_KEY = 'spanishlearn_users';
+const SESSION_KEY = 'spanishlearn_session';
+
 let currentWords = [];
-let allWords = [];
 let currentIndex = 0;
 let currentTab = 'learning';
 let currentDifficulty = 'easy';
@@ -9,322 +11,215 @@ let currentBlock = 0;
 let totalBlocks = 1;
 let isCardFlipped = false;
 
-document.addEventListener('DOMContentLoaded', () => {
-    setupNavigation();
-    setupDifficultyButtons();
-    setupEventListeners();
-    loadStats();
-    loadWords();
-});
+function getSession() {
+    return localStorage.getItem(SESSION_KEY);
+}
+
+function stateKey() {
+    return `spanishlearn_state_${getSession()}`;
+}
+
+function saveState() {
+    if (!getSession()) return;
+    localStorage.setItem(stateKey(), JSON.stringify({
+        difficulty: currentDifficulty,
+        block: currentBlock,
+        index: currentIndex,
+        tab: currentTab
+    }));
+}
+
+function loadState() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(stateKey()) || '{}');
+        currentDifficulty = saved.difficulty || 'easy';
+        currentBlock = Number.isInteger(saved.block) ? saved.block : 0;
+        currentIndex = Number.isInteger(saved.index) ? saved.index : 0;
+        currentTab = saved.tab || 'learning';
+    } catch (_) {
+        currentDifficulty = 'easy';
+        currentBlock = 0;
+        currentIndex = 0;
+        currentTab = 'learning';
+    }
+}
+
+async function hashPassword(password) {
+    const data = new TextEncoder().encode(password);
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hash)).map(byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+function showLogin() {
+    document.body.innerHTML = `
+        <main class="auth-page">
+            <form id="auth-form" class="auth-box">
+                <h1>🇪🇸 SpanishLearn</h1>
+                <h2>Bejelentkezés</h2>
+                <p class="auth-help">A haladásod elmentéséhez hozz létre felhasználót.</p>
+                <label>Felhasználónév<input id="auth-username" required autocomplete="username"></label>
+                <label>Jelszó<input id="auth-password" type="password" minlength="4" required autocomplete="new-password"></label>
+                <button type="submit" class="auth-button">Belépés / Regisztráció</button>
+                <p id="auth-message" class="auth-message"></p>
+            </form>
+        </main>
+        <style>
+            .auth-page{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#667eea,#764ba2);font-family:Arial,sans-serif}
+            .auth-box{width:min(92%,400px);padding:32px;background:white;border-radius:16px;box-shadow:0 10px 35px #0004;display:flex;flex-direction:column;gap:14px}
+            .auth-box h1,.auth-box h2{text-align:center;margin:0}.auth-help{color:#6c757d;text-align:center;font-size:14px}
+            .auth-box label{display:flex;flex-direction:column;gap:6px;font-weight:600}.auth-box input{padding:12px;border:1px solid #ddd;border-radius:8px;font-size:16px}
+            .auth-button{padding:13px;border:0;border-radius:8px;background:#667eea;color:white;font-size:16px;font-weight:bold;cursor:pointer}.auth-message{text-align:center;color:#d6336c;min-height:20px}
+        </style>`;
+
+    document.getElementById('auth-form').addEventListener('submit', async event => {
+        event.preventDefault();
+        const username = document.getElementById('auth-username').value.trim();
+        const password = document.getElementById('auth-password').value;
+        const message = document.getElementById('auth-message');
+        if (!username || password.length < 4) {
+            message.textContent = 'Adj meg felhasználónevet és legalább 4 karakteres jelszót.';
+            return;
+        }
+        const users = JSON.parse(localStorage.getItem(USERS_KEY) || '{}');
+        const passwordHash = await hashPassword(password);
+        if (users[username] && users[username] !== passwordHash) {
+            message.textContent = 'Hibás jelszó ehhez a felhasználónévhez.';
+            return;
+        }
+        users[username] = passwordHash;
+        localStorage.setItem(USERS_KEY, JSON.stringify(users));
+        localStorage.setItem(SESSION_KEY, username);
+        location.reload();
+    });
+}
+
+function addLogoutButton() {
+    const header = document.querySelector('.header-right');
+    if (!header) return;
+    const button = document.createElement('button');
+    button.className = 'logout-button';
+    button.textContent = `Kilépés (${getSession()})`;
+    button.onclick = () => { saveState(); localStorage.removeItem(SESSION_KEY); location.reload(); };
+    header.appendChild(button);
+}
 
 function setupNavigation() {
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            goToPage(item.dataset.page);
-        });
-    });
+    document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', event => {
+        event.preventDefault(); goToPage(item.dataset.page);
+    }));
 }
 
 function setupDifficultyButtons() {
-    document.querySelectorAll('.difficulty-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            currentDifficulty = btn.dataset.difficulty;
-            currentBlock = 0;
-            isCardFlipped = false;
-            document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            loadWords();
-        });
-    });
+    document.querySelectorAll('.difficulty-btn').forEach(button => button.addEventListener('click', () => {
+        currentDifficulty = button.dataset.difficulty; currentBlock = 0; currentIndex = 0; isCardFlipped = false;
+        document.querySelectorAll('.difficulty-btn').forEach(item => item.classList.remove('active'));
+        button.classList.add('active'); saveState(); loadWords();
+    }));
 }
 
 function goToPage(page) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    const pageElement = document.getElementById(`${page}-page`);
-    if (pageElement) pageElement.classList.add('active');
-
-    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-    const menuItem = document.querySelector(`[data-page="${page}"]`);
-    if (menuItem) menuItem.classList.add('active');
-
+    document.querySelectorAll('.page').forEach(item => item.classList.remove('active'));
+    document.getElementById(`${page}-page`)?.classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.page === page));
     if (page === 'cards') loadWords();
     if (page === 'progress') loadProgressStats();
 }
 
 async function loadStats() {
-    try {
-        const response = await fetch(`${API_URL}/stats`);
-        const stats = await response.json();
-
-        document.getElementById('learned-count-dash').textContent = stats.learned;
-        document.getElementById('remaining-count-dash').textContent = stats.remaining;
-        document.getElementById('progress-dash').textContent = Math.round(stats.progress_percentage) + '%';
-        document.getElementById('total-count-dash').textContent = stats.total_words;
-        document.getElementById('progress-fill-dash').style.width = stats.progress_percentage + '%';
-        document.getElementById('progress-text-dash').textContent = Math.round(stats.progress_percentage);
-    } catch (error) {
-        console.error('Error loading stats:', error);
-    }
+    const response = await fetch(`${API_URL}/stats`); const stats = await response.json();
+    document.getElementById('learned-count-dash').textContent = stats.learned;
+    document.getElementById('remaining-count-dash').textContent = stats.remaining;
+    document.getElementById('progress-dash').textContent = `${Math.round(stats.progress_percentage)}%`;
+    document.getElementById('total-count-dash').textContent = stats.total_words;
+    document.getElementById('progress-fill-dash').style.width = `${stats.progress_percentage}%`;
+    document.getElementById('progress-text-dash').textContent = Math.round(stats.progress_percentage);
 }
 
 async function loadWords() {
     try {
-        const response = await fetch(`${API_URL}/words`);
-        const words = await response.json();
-
-        allWords = words.filter(word => word.difficulty === currentDifficulty);
-        const filtered = allWords.filter(word => currentTab === 'learning' ? !word.learned : word.learned);
-
-        if (filtered.length === 0) {
-            currentWords = [];
-            totalBlocks = 1;
-            currentBlock = 0;
-            isCardFlipped = false;
-            displayCard();
-            displayWordsList();
-            renderBlockControls();
-            return;
-        }
-
+        const response = await fetch(`${API_URL}/words`); const words = await response.json();
+        let filtered = words.filter(word => word.difficulty === currentDifficulty);
+        filtered = filtered.filter(word => currentTab === 'learning' ? !word.learned : word.learned);
         totalBlocks = Math.max(1, Math.ceil(filtered.length / BLOCK_SIZE));
         if (currentBlock >= totalBlocks) currentBlock = 0;
-
-        const start = currentBlock * BLOCK_SIZE;
-        const end = start + BLOCK_SIZE;
-        currentWords = filtered.slice(start, end);
-
-        displayCard();
-        displayWordsList();
-        renderBlockControls();
-    } catch (error) {
-        console.error('Error loading words:', error);
-    }
+        currentWords = filtered.slice(currentBlock * BLOCK_SIZE, currentBlock * BLOCK_SIZE + BLOCK_SIZE);
+        if (currentIndex >= currentWords.length) currentIndex = 0;
+        displayCard(); displayWordsList(); renderBlockControls(); saveState();
+    } catch (error) { console.error('Error loading words:', error); }
 }
 
 function renderBlockControls() {
-    const controls = document.getElementById('block-controls');
-    if (!controls) return;
-
-    const visibleTotal = Math.max(1, totalBlocks);
-    controls.innerHTML = `
-        <button id="prev-block" class="block-btn">← Előző</button>
-        <span>Blokk ${currentBlock + 1} / ${visibleTotal}</span>
-        <button id="next-block" class="block-btn">Következő →</button>
-    `;
-
-    document.getElementById('prev-block').addEventListener('click', () => {
-        if (currentBlock > 0) {
-            currentBlock--;
-            isCardFlipped = false;
-            loadWords();
-        }
-    });
-
-    document.getElementById('next-block').addEventListener('click', () => {
-        if (currentBlock < totalBlocks - 1) {
-            currentBlock++;
-            isCardFlipped = false;
-            loadWords();
-        }
-    });
+    const controls = document.getElementById('block-controls'); if (!controls) return;
+    controls.innerHTML = `<button id="prev-block" class="block-btn">← Előző</button><span>Blokk ${currentBlock + 1} / ${totalBlocks}</span><button id="next-block" class="block-btn">Következő →</button>`;
+    document.getElementById('prev-block').onclick = () => { if (currentBlock > 0) { currentBlock--; currentIndex = 0; isCardFlipped = false; loadWords(); } };
+    document.getElementById('next-block').onclick = () => { if (currentBlock < totalBlocks - 1) { currentBlock++; currentIndex = 0; isCardFlipped = false; loadWords(); } };
 }
 
 function displayCard() {
-    const card = document.getElementById('main-card');
-
-    if (currentWords.length === 0) {
-        card.innerHTML = `
-            <div class="card-content">
-                <div class="card-word">
-                    <h2 class="spanish-word">🎉</h2>
-                    <p class="english-word">Nincs több szó ebben a szinten.</p>
-                </div>
-            </div>
-        `;
-        document.getElementById('current-card-num').textContent = '0';
-        document.getElementById('total-cards-num').textContent = '0';
-        return;
-    }
-
-    const word = currentWords[currentIndex % currentWords.length];
-    const cardFront = `
-        <div class="card-content">
-            <div class="card-word">
-                <p class="card-side-label">SPANYOL</p>
-                <h2 class="spanish-word">${word.spanish}</h2>
-            </div>
-            <div class="card-example">
-                <p class="label">Példa:</p>
-                <p class="sentence">${word.example_sentence}</p>
-            </div>
-            <div class="card-progress">
-                <span>Szó <span id="current-card-num">${currentIndex + 1}</span> / <span id="total-cards-num">${currentWords.length}</span></span>
-            </div>
-        </div>
-    `;
-
-    const cardBack = `
-        <div class="card-content">
-            <div class="card-word">
-                <p class="card-side-label">MAGYAR</p>
-                <h2 class="spanish-word">${word.english}</h2>
-            </div>
-            <div class="card-example">
-                <p class="label">Jelentés:</p>
-                <p class="translation">${word.example_translation}</p>
-            </div>
-            <div class="card-progress">
-                <span>Fordítsd meg a kártyát</span>
-            </div>
-        </div>
-    `;
-
-    card.innerHTML = `
-        <div class="flip-card ${isCardFlipped ? 'is-flipped' : ''}" aria-label="Tap to flip card">
-            <div class="flip-card-inner">
-                <div class="flip-card-front">${cardFront}</div>
-                <div class="flip-card-back">${cardBack}</div>
-            </div>
-        </div>
-    `;
-
-    const flipCard = card.querySelector('.flip-card');
-    if (flipCard) {
-        flipCard.addEventListener('click', () => {
-            isCardFlipped = !isCardFlipped;
-            displayCard();
-        });
-    }
+    const container = document.getElementById('main-card');
+    if (!currentWords.length) { container.innerHTML = '<div class="card-content"><h2>🎉</h2><p>Nincs több szó ebben a szinten.</p></div>'; return; }
+    const word = currentWords[currentIndex];
+    container.innerHTML = `<div class="flip-card ${isCardFlipped ? 'is-flipped' : ''}" role="button" tabindex="0" aria-label="Kattints a kártya megfordításához"><div class="flip-card-inner"><div class="flip-card-front"><div class="card-content"><p class="card-side-label">SPANYOL</p><h2 class="spanish-word">${word.spanish}</h2><p class="flip-hint">Kattints a magyar jelentéshez</p><div class="card-progress">Szó ${currentIndex + 1} / ${currentWords.length}</div></div></div><div class="flip-card-back"><div class="card-content"><p class="card-side-label">MAGYAR</p><h2 class="spanish-word">${word.english}</h2><p class="translation">${word.example_translation || ''}</p><p class="flip-hint">Kattints a spanyol szóhoz</p></div></div></div></div>`;
+    const flip = container.querySelector('.flip-card');
+    const toggle = () => { isCardFlipped = !isCardFlipped; displayCard(); };
+    flip.onclick = toggle; flip.onkeydown = event => { if (event.key === ' ' || event.key === 'Enter') { event.preventDefault(); toggle(); } };
 }
 
 function displayWordsList() {
-    const listContainer = document.getElementById('words-list-container');
-    if (currentWords.length === 0) {
-        listContainer.innerHTML = '<p style="text-align: center; color: #999;">Nincs megjeleníthető szó.</p>';
-        return;
-    }
-
-    listContainer.innerHTML = currentWords.map(word => `
-        <div class="word-item">
-            <span class="word-rank">#${word.rank}</span>
-            <div class="word-text">
-                <div class="word-spanish">${word.spanish}</div>
-                <div class="word-english">${word.english}</div>
-            </div>
-            <span class="word-status">${word.learned ? '✅' : '📚'}</span>
-        </div>
-    `).join('');
+    const container = document.getElementById('words-list-container');
+    container.innerHTML = currentWords.length ? currentWords.map(word => `<div class="word-item"><span class="word-rank">#${word.rank}</span><div class="word-text"><div class="word-spanish">${word.spanish}</div><div class="word-english">${word.english}</div></div><span>${word.learned ? '✅' : '📚'}</span></div>`).join('') : '<p>Nincs megjeleníthető szó.</p>';
 }
 
 function setupEventListeners() {
-    document.getElementById('btn-learn').addEventListener('click', markAsLearned);
-    document.getElementById('btn-skip').addEventListener('click', markAsUnlearned);
-
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            currentTab = e.target.dataset.tab;
-            currentBlock = 0;
-            isCardFlipped = false;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
-            loadWords();
-        });
+    document.getElementById('btn-learn').onclick = markAsLearned;
+    document.getElementById('btn-skip').onclick = markAsUnlearned;
+    document.querySelectorAll('.tab-btn').forEach(button => button.onclick = () => {
+        currentTab = button.dataset.tab; currentBlock = 0; currentIndex = 0; isCardFlipped = false;
+        document.querySelectorAll('.tab-btn').forEach(item => item.classList.remove('active')); button.classList.add('active'); loadWords();
     });
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft') markAsUnlearned();
-        if (e.key === 'ArrowRight') markAsLearned();
-        if (e.key === ' ') {
-            e.preventDefault();
-            isCardFlipped = !isCardFlipped;
-            displayCard();
-        }
+    document.addEventListener('keydown', event => {
+        if (event.target.matches('input,textarea')) return;
+        if (event.key === 'ArrowLeft') markAsUnlearned();
+        if (event.key === 'ArrowRight') markAsLearned();
     });
 }
 
-async function markAsLearned() {
-    if (currentWords.length === 0) return;
-    const word = currentWords[currentIndex % currentWords.length];
-    try {
-        await fetch(`${API_URL}/words/${word.id}/mark-learned`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        currentIndex++;
-        isCardFlipped = false;
-        loadWords();
-        loadStats();
-    } catch (error) {
-        console.error('Error marking as learned:', error);
-    }
+async function advance(endpoint) {
+    if (!currentWords.length) return;
+    const word = currentWords[currentIndex];
+    await fetch(`${API_URL}/words/${word.id}/${endpoint}`, { method: 'POST' });
+    currentIndex = (currentIndex + 1) % currentWords.length; isCardFlipped = false; saveState();
+    await loadWords(); await loadStats();
 }
-
-async function markAsUnlearned() {
-    if (currentWords.length === 0) return;
-    const word = currentWords[currentIndex % currentWords.length];
-    try {
-        await fetch(`${API_URL}/words/${word.id}/mark-unlearned`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        currentIndex++;
-        isCardFlipped = false;
-        loadWords();
-        loadStats();
-    } catch (error) {
-        console.error('Error marking as unlearned:', error);
-    }
-}
+function markAsLearned() { return advance('mark-learned'); }
+function markAsUnlearned() { return advance('mark-unlearned'); }
 
 async function loadProgressStats() {
-    try {
-        const response = await fetch(`${API_URL}/stats`);
-        const stats = await response.json();
-        document.getElementById('total-learned-stat').textContent = stats.learned;
-        document.getElementById('total-remaining-stat').textContent = stats.remaining;
-        document.getElementById('overall-progress').textContent = Math.round(stats.progress_percentage) + '%';
-
-        const circumference = 2 * Math.PI * 90;
-        const offset = circumference - (stats.progress_percentage / 100) * circumference;
-        const ringProgress = document.getElementById('progress-ring');
-        if (ringProgress) ringProgress.style.strokeDashoffset = offset;
-
-        loadLearnedWords();
-    } catch (error) {
-        console.error('Error loading progress stats:', error);
-    }
+    const response = await fetch(`${API_URL}/stats`); const stats = await response.json();
+    document.getElementById('total-learned-stat').textContent = stats.learned;
+    document.getElementById('total-remaining-stat').textContent = stats.remaining;
+    document.getElementById('overall-progress').textContent = `${Math.round(stats.progress_percentage)}%`;
+    const ring = document.getElementById('progress-ring');
+    if (ring) ring.style.strokeDashoffset = 565 - (stats.progress_percentage / 100) * 565;
+    loadLearnedWords();
 }
 
 async function loadLearnedWords() {
-    try {
-        const response = await fetch(`${API_URL}/words`);
-        const words = await response.json();
-        const learned = words.filter(word => word.learned);
-        const container = document.getElementById('learned-words-list');
-        if (learned.length === 0) {
-            container.innerHTML = '<p style="text-align: center; color: #999;">Még nincs megtanult szó.</p>';
-            return;
-        }
-
-        container.innerHTML = learned.map(word => `
-            <div class="learned-word-tag">
-                <strong>${word.spanish}</strong><br>
-                <small>${word.english}</small>
-            </div>
-        `).join('');
-    } catch (error) {
-        console.error('Error loading learned words:', error);
-    }
+    const response = await fetch(`${API_URL}/words`); const words = (await response.json()).filter(word => word.learned);
+    document.getElementById('learned-words-list').innerHTML = words.length ? words.map(word => `<div class="learned-word-tag"><strong>${word.spanish}</strong><br><small>${word.english}</small></div>`).join('') : '<p>Még nincs megtanult szó.</p>';
 }
 
-function resetProgress() {
-    if (confirm('Biztosan törölni szeretnéd a haladást?')) {
-        localStorage.clear();
-        location.reload();
-    }
+function resetProgress() { if (confirm('Biztosan törölni szeretnéd a haladást?')) { localStorage.removeItem(stateKey()); location.reload(); } }
+function exportProgress() { alert('Az exportálás hamarosan érkezik!'); }
+
+function startApp() {
+    loadState();
+    setupNavigation(); setupDifficultyButtons(); setupEventListeners(); addLogoutButton();
+    document.querySelectorAll('.difficulty-btn').forEach(button => button.classList.toggle('active', button.dataset.difficulty === currentDifficulty));
+    document.querySelectorAll('.tab-btn').forEach(button => button.classList.toggle('active', button.dataset.tab === currentTab));
+    loadStats(); loadWords();
 }
 
-function exportProgress() {
-    alert('A progress export funkció hamarosan érkezik!');
-}
+document.addEventListener('DOMContentLoaded', () => {
+    if (getSession()) startApp(); else showLogin();
+});
